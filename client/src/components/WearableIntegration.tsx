@@ -1,23 +1,125 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WatchIcon, FolderSync, Settings, Circle, Battery } from "lucide-react";
+import { WatchIcon, FolderSync, Settings, Circle, Battery, Smartphone, CheckCircle } from "lucide-react";
 import { useHealthData } from "../context/HealthDataContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function WearableIntegration() {
   const { healthData } = useHealthData();
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [setupStep, setSetupStep] = useState(0);
 
   const handleConnectWatch = () => {
     setIsConnecting(true);
+    setSetupStep(1);
     
-    // Simulate connection process
-    setTimeout(() => {
-      setIsConnecting(false);
-      setIsConnected(true);
-    }, 2000);
+    // Simulate connection process - progress through steps
+    const stepTimers = [
+      setTimeout(() => setSetupStep(2), 1000),
+      setTimeout(() => setSetupStep(3), 2000),
+      setTimeout(() => {
+        setSetupStep(4);
+        setIsConnecting(false);
+      }, 3000),
+      setTimeout(() => {
+        setIsConnected(true);
+        setSetupStep(0);
+      }, 4000)
+    ];
+    
+    return () => stepTimers.forEach(timer => clearTimeout(timer));
+  };
+
+  const renderConnectionSteps = () => {
+    return (
+      <div className="py-4">
+        <div className="flex items-center mb-6">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+            1
+          </div>
+          <div className="h-1 flex-1 bg-muted mx-2" />
+          <div className={`w-8 h-8 rounded-full ${setupStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'} flex items-center justify-center`}>
+            2
+          </div>
+          <div className="h-1 flex-1 bg-muted mx-2" />
+          <div className={`w-8 h-8 rounded-full ${setupStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'} flex items-center justify-center`}>
+            3
+          </div>
+          <div className="h-1 flex-1 bg-muted mx-2" />
+          <div className={`w-8 h-8 rounded-full ${setupStep >= 4 ? 'bg-green-500 text-white' : 'bg-muted'} flex items-center justify-center`}>
+            {setupStep >= 4 ? <CheckCircle className="h-5 w-5" /> : '4'}
+          </div>
+        </div>
+        
+        <AnimatePresence mode="wait">
+          {setupStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <Smartphone className="h-12 w-12 text-primary mx-auto mb-2" />
+              <h3 className="font-medium mb-1">Searching for devices...</h3>
+              <p className="text-sm text-muted-foreground mb-4">Make sure your device is turned on and nearby</p>
+            </motion.div>
+          )}
+          
+          {setupStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <WatchIcon className="h-12 w-12 text-primary mx-auto mb-2" />
+              <h3 className="font-medium mb-1">Device found!</h3>
+              <p className="text-sm text-muted-foreground mb-4">Smartwatch (BG-Monitor Pro) detected</p>
+            </motion.div>
+          )}
+          
+          {setupStep === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <FolderSync className="h-12 w-12 text-primary mx-auto mb-2" />
+              <h3 className="font-medium mb-1">Syncing data</h3>
+              <p className="text-sm text-muted-foreground mb-4">Updating health records and device settings</p>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-primary" 
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1 }}
+                />
+              </div>
+            </motion.div>
+          )}
+          
+          {setupStep === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center"
+            >
+              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+              <h3 className="font-medium mb-1">Setup complete!</h3>
+              <p className="text-sm text-muted-foreground mb-4">Your smartwatch is now connected and ready to use</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
   };
 
   return (
@@ -30,7 +132,7 @@ export default function WearableIntegration() {
         <CardHeader className="pb-0">
           <div className="flex justify-between items-center">
             <CardTitle>Wearable Device</CardTitle>
-            <div className="text-sm text-green-500 flex items-center">
+            <div className={`text-sm flex items-center ${isConnected ? 'text-green-500' : isConnecting ? 'text-amber-500' : 'text-muted-foreground'}`}>
               {isConnected ? (
                 <>
                   <Circle className="h-2 w-2 mr-1 fill-green-500" /> Connected
@@ -54,7 +156,7 @@ export default function WearableIntegration() {
           </div>
         </CardHeader>
         <CardContent>
-          {!isConnected && !isConnecting ? (
+          {!isConnected && !isConnecting && setupStep === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
                 <WatchIcon className="h-8 w-8" />
@@ -65,6 +167,8 @@ export default function WearableIntegration() {
                 Connect Device
               </Button>
             </div>
+          ) : isConnecting || (!isConnected && setupStep > 0) ? (
+            renderConnectionSteps()
           ) : (
             <>
               <div className="flex items-center justify-center mb-6">
