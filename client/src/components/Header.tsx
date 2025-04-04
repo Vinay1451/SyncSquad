@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useSafeTheme } from "@/hooks/use-safe-context";
 import { motion } from "framer-motion";
 // Using PNG image URLs for logos
-const kalasalingamLogo = "https://png.pngtree.com/png-clipart/20230113/ourmid/pngtree-university-logo-png-image_6560763.png";
+const kalasalingamLogo = "https://sis.kalasalingam.ac.in/images/kare_logo.png";
 const eleviumLogo = "https://png.pngtree.com/png-clipart/20230430/original/pngtree-health-care-doctor-logo-template-vector-png-image_9124783.png";
 
 export default function Header() {
@@ -34,17 +34,17 @@ export default function Header() {
     <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Left side - Kalasalingam Academy text and logo */}
+          {/* Left side - Kalasalingam Academy logo and text */}
           <div className="flex items-center space-x-3">
-            <div className="block">
-              <h3 className="text-sm font-medium leading-tight">Kalasalingam Academy</h3>
-              <p className="text-xs text-muted-foreground">Of Research And Education</p>
-            </div>
             <img 
               src={kalasalingamLogo} 
               alt="Kalasalingam Academy Logo" 
               className="h-12 w-auto"
             />
+            <div className="hidden md:block">
+              <h3 className="text-sm font-medium leading-tight">Kalasalingam Academy</h3>
+              <p className="text-xs text-muted-foreground">Of Research And Education</p>
+            </div>
           </div>
           
           {/* Center - Project title and animated clock */}
