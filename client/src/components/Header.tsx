@@ -39,10 +39,10 @@ export default function Header() {
             <img 
               src={kalasalingamLogo} 
               alt="Kalasalingam Academy Logo" 
-              className="h-12 w-auto"
+              className="h-14 w-auto"
             />
             <div className="hidden md:block">
-              <h3 className="text-sm font-medium leading-tight">Kalasalingam Academy</h3>
+              <h3 className="text-base font-medium leading-tight">Kalasalingam Academy</h3>
               <p className="text-xs text-muted-foreground">Of Research And Education</p>
             </div>
           </div>
@@ -79,10 +79,10 @@ export default function Header() {
             <img 
               src={eleviumLogo} 
               alt="Elevium Logo" 
-              className="h-12 w-auto"
+              className="h-14 w-auto"
             />
             <div className="hidden md:flex flex-col items-start">
-              <h3 className="text-sm font-medium">Elevium</h3>
+              <h3 className="text-base font-medium">Elevium</h3>
               <p className="text-xs text-muted-foreground">Healthcare Innovation</p>
             </div>
             <Button 
