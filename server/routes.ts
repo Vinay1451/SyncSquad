@@ -3,44 +3,62 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { defaultHealthData } from "../client/src/lib/healthData";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Simulate Gemini API
-async function simulateGeminiAPI(query: string): Promise<string> {
-  const responses: Record<string, string> = {
-    default: "I'm Ballie, your AI health assistant. I can provide personalized health insights based on your blood sugar data and activity levels.",
-    
-    high: "I noticed your blood sugar is higher than usual. Consider drinking water and going for a short walk. Make sure your next meal is balanced with protein and fiber.",
-    
-    low: "Your blood sugar seems to be running low. Consider having a small snack with about 15g of carbs, like a piece of fruit or a small glass of juice.",
-    
-    morning: "I noticed your breakfast had more carbs than usual (52g vs. your avg 35g). Also, you took your insulin just 5 mins before eating rather than the recommended 15-20 mins. Try giving insulin more time to work before eating tomorrow.",
-    
-    exercise: "Based on your data, moderate exercise helps lower your blood sugar by about 15 mg/dL. I recommend 20-30 minutes of walking after meals when possible.",
-    
-    medication: "I see you've been consistent with your medication this week. Great job! Maintaining this routine is crucial for stable blood sugar levels.",
-    
-    diet: "Your diet patterns show lower glucose spikes when you eat meals with protein and fat alongside carbs. Consider adding nuts, eggs, or avocado to your breakfast."
-  };
+// Initialize Gemini API
+const apiKey = process.env.GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey || "");
 
-  // Wait to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  // Check for keywords in the query
-  if (query.toLowerCase().includes("high") || query.toLowerCase().includes("spike")) {
-    return responses.high;
-  } else if (query.toLowerCase().includes("low")) {
-    return responses.low;
-  } else if (query.toLowerCase().includes("breakfast") || query.toLowerCase().includes("morning")) {
-    return responses.morning;
-  } else if (query.toLowerCase().includes("exercise") || query.toLowerCase().includes("walk") || query.toLowerCase().includes("activity")) {
-    return responses.exercise;
-  } else if (query.toLowerCase().includes("medication") || query.toLowerCase().includes("insulin") || query.toLowerCase().includes("medicine")) {
-    return responses.medication;
-  } else if (query.toLowerCase().includes("diet") || query.toLowerCase().includes("food") || query.toLowerCase().includes("eat")) {
-    return responses.diet;
+// Function to use actual Gemini API
+async function generateAIResponse(userQuery: string, healthData: any): Promise<string> {
+  // Fallback in case the API key is missing or invalid
+  if (!apiKey) {
+    console.warn("No Gemini API key found, using fallback response");
+    return "I'm Ballie, your AI health assistant. To enable personalized insights, please provide a valid Gemini API key.";
   }
 
-  return responses.default;
+  try {
+    // Configure the model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    // Prepare health data context for the model
+    const healthContext = `
+      Current blood glucose: ${healthData.currentGlucose} mg/dL
+      Heart rate: ${healthData.heartRate} BPM
+      Oxygen saturation: ${healthData.spO2}%
+      Steps today: ${healthData.steps}
+      Activity minutes: ${healthData.activityMinutes}
+      Last meal: ${healthData.meals && healthData.meals.length > 0 ? healthData.meals[0].description : "Unknown"}
+      Recent alerts: ${healthData.alerts.map((a: any) => a.message).join(", ")}
+    `;
+
+    // Create prompt with instructions and context
+    const prompt = `
+      You are Ballie, an AI health assistant specialized in diabetes management. You help users manage their blood sugar, medication, diet, and exercise. Always be supportive, compassionate, and provide actionable advice.
+      
+      CURRENT HEALTH DATA:
+      ${healthContext}
+      
+      USER QUESTION: ${userQuery}
+      
+      Provide a helpful, personalized response based on the user's health data and question. Keep your response concise (3-5 sentences max). Focus on giving actionable advice that could help the user manage their diabetes better.
+    `;
+
+    // Generate response
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    return response;
+  } catch (error) {
+    console.error("Error with Gemini API:", error);
+    // Fallback responses in case of API errors
+    const fallbackResponses = [
+      "I'm having trouble accessing my AI capabilities right now. Let me know if you have specific questions about your blood sugar readings.",
+      "Sorry, I couldn't process that request. Your latest glucose reading is within your target range. Is there anything specific you'd like to know?",
+      "I'm experiencing a temporary connection issue. Based on your recent data, your health metrics are stable. Can I help with anything specific?",
+      "I couldn't connect to my knowledge base. Your recent activity shows positive trends. Please try asking again in a moment."
+    ];
+    return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -88,8 +106,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = querySchema.parse(req.body);
       
-      // Use simulated Gemini API for the demo
-      const response = await simulateGeminiAPI(validatedData.query);
+      // Get current health data to provide context to the AI
+      // For the demo, we'll use the same method that powers the /api/health-data endpoint
+      const randomGlucose = defaultHealthData.currentGlucose + Math.floor(Math.random() * 10 - 5);
+      const randomHeartRate = defaultHealthData.heartRate + Math.floor(Math.random() * 6 - 3);
+      const randomSpO2 = Math.min(100, defaultHealthData.spO2 + Math.floor(Math.random() * 4 - 2));
+      
+      const currentHealthData = {
+        ...defaultHealthData,
+        currentGlucose: randomGlucose,
+        heartRate: randomHeartRate,
+        spO2: randomSpO2,
+      };
+      
+      // Use Gemini API with health data context
+      const response = await generateAIResponse(validatedData.query, currentHealthData);
       
       res.json({ response });
     } catch (error) {

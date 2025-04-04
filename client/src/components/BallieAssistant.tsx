@@ -1,27 +1,36 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Chrome, Send, User, X } from "lucide-react";
+import { 
+  Bot, Send, User, X, Maximize2, Minimize2, 
+  Heart, Activity, Brain, Sparkles
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { generateAIResponse } from "../lib/gemini";
+import { useTheme } from "@/context/ThemeContext";
 
 type Message = {
   sender: "user" | "assistant";
   text: string;
+  timestamp: Date;
 };
 
 export default function BallieAssistant() {
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "assistant",
-      text: "Hello! I'm Ballie, your personal health assistant. How can I help you manage your diabetes today?"
+      text: "Hello! I'm Ballie, your personal health assistant powered by Gemini AI. How can I help you manage your diabetes today?",
+      timestamp: new Date()
     }
   ]);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,8 +40,21 @@ export default function BallieAssistant() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Focus the input field when chat is opened
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
+    }
+  }, [isOpen]);
+
   const handleToggleChat = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleToggleExpand = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,7 +63,7 @@ export default function BallieAssistant() {
     if (!inputValue.trim() || isWaitingForResponse) return;
     
     // Add user message
-    const userMessage = { sender: "user", text: inputValue.trim() } as const;
+    const userMessage = { sender: "user", text: inputValue.trim(), timestamp: new Date() };
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
     setIsWaitingForResponse(true);
@@ -49,13 +71,18 @@ export default function BallieAssistant() {
     try {
       // Get AI response
       const response = await generateAIResponse(userMessage.text);
-      setMessages(prev => [...prev, { sender: "assistant", text: response }]);
+      setMessages(prev => [...prev, { 
+        sender: "assistant", 
+        text: response,
+        timestamp: new Date()
+      }]);
     } catch (error) {
       setMessages(prev => [
         ...prev, 
         { 
           sender: "assistant", 
-          text: "I'm sorry, I'm having trouble connecting right now. Please try again later." 
+          text: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+          timestamp: new Date()
         }
       ]);
     } finally {
@@ -63,16 +90,66 @@ export default function BallieAssistant() {
     }
   };
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Suggestions for the user to try
+  const suggestions = [
+    "How can I manage high blood sugar?",
+    "What foods should I eat to maintain stable glucose?",
+    "How does exercise affect my blood sugar?",
+    "What should I do if my glucose is too low?",
+    "Tips for taking medications consistently"
+  ];
+
+  // Function to use a suggestion
+  const useSuggestion = (suggestion: string) => {
+    setInputValue(suggestion);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
   return (
     <div className="fixed bottom-4 right-4 z-40">
       {/* Chat button */}
-      <Button
-        onClick={handleToggleChat}
-        className="w-14 h-14 rounded-full shadow-lg"
-        size="icon"
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        <Chrome className="h-6 w-6" />
-      </Button>
+        <Button
+          onClick={handleToggleChat}
+          className="w-14 h-14 rounded-full shadow-lg"
+          size="icon"
+        >
+          {isWaitingForResponse ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+            >
+              <Sparkles className="h-6 w-6" />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ 
+                scale: [0.8, 1.1, 0.9, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 1.5,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut",
+                times: [0, 0.2, 0.8, 1]
+              }}
+            >
+              <Bot className="h-6 w-6" />
+            </motion.div>
+          )}
+        </Button>
+      </motion.div>
       
       {/* Chat window */}
       <AnimatePresence>
@@ -82,83 +159,191 @@ export default function BallieAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute bottom-16 right-0 w-80 bg-card rounded-xl shadow-xl border overflow-hidden"
+            className={`absolute ${isExpanded ? 'bottom-20 right-0 w-[400px] sm:w-[450px] md:w-[500px]' : 'bottom-16 right-0 w-80 sm:w-96'} bg-card rounded-xl shadow-xl border overflow-hidden`}
           >
-            <div className="p-3 bg-primary text-primary-foreground flex items-center justify-between">
+            {/* Header */}
+            <div className="p-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground flex items-center justify-between">
               <div className="flex items-center">
-                <Chrome className="mr-2 h-5 w-5" />
-                <span className="font-medium">Ballie Health Assistant</span>
+                <div className="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-2">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="font-medium">Ballie Health Assistant</span>
+                  <div className="text-xs opacity-80">Diabetes Management AI</div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="text-xs px-2 py-1 bg-white bg-opacity-20 rounded-full">
-                  Gemini
+              <div className="flex items-center space-x-1">
+                <div className="text-xs px-2 py-1 bg-white bg-opacity-20 rounded-full flex items-center">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  <span>Gemini AI</span>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-6 w-6 text-primary-foreground hover:text-primary-foreground/80"
+                  className="h-7 w-7 text-primary-foreground hover:text-primary-foreground/80"
+                  onClick={handleToggleExpand}
+                  title={isExpanded ? "Minimize" : "Maximize"}
+                >
+                  {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 text-primary-foreground hover:text-primary-foreground/80"
                   onClick={handleToggleChat}
+                  title="Close"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
             
-            <div className="p-4 h-80 overflow-y-auto bg-muted/20">
+            {/* Messages area */}
+            <div 
+              className={`p-4 ${isExpanded ? 'h-[400px]' : 'h-80'} overflow-y-auto bg-muted/20 backdrop-blur-sm`}
+              style={{
+                backgroundImage: theme === 'dark'
+                  ? 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 100%)'
+                  : 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 100%)'
+              }}
+            >
+              {/* Suggestions at the start */}
+              {messages.length === 1 && (
+                <div className="mb-5">
+                  <div className="text-sm text-muted-foreground mb-2">Try asking:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.slice(0, 3).map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs py-1 h-auto"
+                        onClick={() => useSuggestion(suggestion)}
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            
+              {/* Message bubbles */}
               {messages.map((message, index) => (
-                <div 
+                <motion.div 
                   key={index} 
-                  className={`flex mb-3 ${message.sender === 'user' ? 'justify-end' : ''}`}
+                  className={`flex mb-4 ${message.sender === 'user' ? 'justify-end' : ''}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                 >
                   {message.sender === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <Chrome className="h-4 w-4" />
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-1">
+                      <Bot className="h-5 w-5" />
                     </div>
                   )}
                   
-                  <div 
-                    className={`mx-2 rounded-lg p-2 max-w-[85%] ${
-                      message.sender === "assistant" 
-                        ? "bg-muted" 
-                        : "bg-primary/10 text-primary-foreground"
-                    }`}
-                  >
-                    <p className="text-sm">{message.text}</p>
+                  <div className="mx-2 max-w-[85%] flex flex-col">
+                    <div 
+                      className={`rounded-2xl p-3 ${
+                        message.sender === "assistant" 
+                          ? "bg-card border border-border shadow-sm" 
+                          : "bg-primary text-primary-foreground"
+                      }`}
+                    >
+                      {message.sender === "assistant" && (
+                        <div className="flex space-x-1 mb-1">
+                          {index > 0 && (
+                            <div className="text-[10px] text-muted-foreground">
+                              {formatTime(message.timestamp)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <p className="text-sm whitespace-pre-line">
+                        {message.text}
+                      </p>
+                    </div>
+                    
+                    {message.sender === "user" && (
+                      <div className="text-[10px] text-muted-foreground self-end mr-3 mt-1">
+                        {formatTime(message.timestamp)}
+                      </div>
+                    )}
                   </div>
                   
                   {message.sender === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4" />
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-1">
+                      <User className="h-5 w-5" />
                     </div>
                   )}
-                </div>
+                </motion.div>
               ))}
               
+              {/* Waiting for response indicator */}
               {isWaitingForResponse && (
-                <div className="flex mb-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                    <Chrome className="h-4 w-4" />
+                <motion.div 
+                  className="flex mb-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                    <Bot className="h-5 w-5" />
                   </div>
-                  <div className="mx-2 bg-muted rounded-lg p-3 max-w-[85%]">
+                  <div className="mx-2 bg-card border border-border shadow-sm rounded-2xl p-3 max-w-[85%]">
                     <motion.div 
-                      className="flex space-x-1"
+                      className="flex items-center space-x-1.5"
                       initial={{ opacity: 0.5 }}
                       animate={{ opacity: 1 }}
-                      transition={{ repeat: Infinity, duration: 1 }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        repeatType: 'reverse',
+                        duration: 0.7 
+                      }}
                     >
-                      <div className="w-2 h-2 rounded-full bg-primary"></div>
-                      <div className="w-2 h-2 rounded-full bg-primary"></div>
-                      <div className="w-2 h-2 rounded-full bg-primary"></div>
+                      <motion.div 
+                        animate={{ y: [0, -5, 0] }} 
+                        transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
+                        className="w-2 h-2 rounded-full bg-primary"
+                      />
+                      <motion.div 
+                        animate={{ y: [0, -5, 0] }} 
+                        transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
+                        className="w-2 h-2 rounded-full bg-primary"
+                      />
+                      <motion.div 
+                        animate={{ y: [0, -5, 0] }} 
+                        transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}
+                        className="w-2 h-2 rounded-full bg-primary"
+                      />
                     </motion.div>
                   </div>
-                </div>
+                </motion.div>
               )}
               
               <div ref={messagesEndRef} />
             </div>
             
-            <form onSubmit={handleSubmit} className="p-3 border-t border-border flex">
+            {/* Quick action buttons - only in expanded mode */}
+            {isExpanded && (
+              <div className="p-2 border-t border-border bg-card/60 backdrop-blur-sm flex justify-center space-x-2">
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Heart className="h-3 w-3 mr-1 text-red-500" /> Blood Sugar
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Activity className="h-3 w-3 mr-1 text-blue-500" /> Activity
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Brain className="h-3 w-3 mr-1 text-purple-500" /> Insights
+                </Button>
+              </div>
+            )}
+            
+            {/* Input form */}
+            <form onSubmit={handleSubmit} className="p-3 border-t border-border flex bg-background">
               <Input
+                ref={inputRef}
                 type="text"
                 placeholder="Ask Ballie about your health..."
                 className="flex-1"
@@ -169,7 +354,7 @@ export default function BallieAssistant() {
               <Button 
                 type="submit" 
                 size="icon"
-                className="ml-2" 
+                className="ml-2 rounded-full" 
                 disabled={!inputValue.trim() || isWaitingForResponse}
               >
                 <Send className="h-4 w-4" />
