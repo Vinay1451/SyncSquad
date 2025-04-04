@@ -7,6 +7,9 @@ import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "@/pages/not-found";
 import { LoadingScreen } from "./components/ui/LoadingScreen";
+import { ThemeProvider } from "./context/ThemeContext";
+import { HealthDataProvider } from "./context/HealthDataContext";
+import BallieAssistant from "./components/BallieAssistant";
 
 function Router() {
   return (
@@ -32,8 +35,13 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {loading ? <LoadingScreen /> : <Router />}
-      <Toaster />
+      <ThemeProvider>
+        <HealthDataProvider>
+          {loading ? <LoadingScreen /> : <Router />}
+          <BallieAssistant />
+          <Toaster />
+        </HealthDataProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
