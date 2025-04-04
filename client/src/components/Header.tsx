@@ -39,17 +39,17 @@ export default function Header() {
             <img 
               src={kalasalingamLogo} 
               alt="Kalasalingam Academy Logo" 
-              className="h-14 w-auto"
+              className="h-16 w-auto"
             />
             <div className="hidden md:block">
-              <h3 className="text-base font-medium leading-tight">Kalasalingam Academy</h3>
-              <p className="text-xs text-muted-foreground">Of Research And Education</p>
+              <h3 className="text-lg font-medium leading-tight">Kalasalingam Academy</h3>
+              <p className="text-sm text-muted-foreground">Of Research And Education</p>
             </div>
           </div>
           
           {/* Center - Project title and animated clock */}
           <div className="flex flex-col items-center">
-            <h1 className="text-xl font-bold text-center">
+            <h1 className="text-2xl font-bold text-center">
               AI-Powered Blood Sugar Monitoring System
             </h1>
             <div className="flex flex-col sm:flex-row items-center text-sm text-muted-foreground mt-1">
@@ -79,11 +79,11 @@ export default function Header() {
             <img 
               src={eleviumLogo} 
               alt="Elevium Logo" 
-              className="h-14 w-auto"
+              className="h-16 w-auto"
             />
             <div className="hidden md:flex flex-col items-start">
-              <h3 className="text-base font-medium">Elevium</h3>
-              <p className="text-xs text-muted-foreground">Healthcare Innovation</p>
+              <h3 className="text-lg font-medium">Elevium</h3>
+              <p className="text-sm text-muted-foreground">Healthcare Innovation</p>
             </div>
             <Button 
               variant="ghost" 

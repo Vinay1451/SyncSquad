@@ -41,6 +41,8 @@ export type HealthData = {
   activityProgress: number;
   deviceBattery: number;
   glucoseReadings: GlucoseReading[];
+  weeklyGlucoseReadings: GlucoseReading[];
+  monthlyGlucoseReadings: GlucoseReading[];
   medications: Medication[];
   medicationAdherence: ("completed" | "partial" | "none")[];
   meals: Meal[];
@@ -72,6 +74,21 @@ export const defaultHealthData: HealthData = {
     { timestamp: "14:00", value: 108 },
     { timestamp: "16:00", value: 124 },
     { timestamp: "18:00", value: 115 }
+  ],
+  weeklyGlucoseReadings: [
+    { timestamp: "Mon", value: 115 },
+    { timestamp: "Tue", value: 128 },
+    { timestamp: "Wed", value: 122 },
+    { timestamp: "Thu", value: 108 },
+    { timestamp: "Fri", value: 118 },
+    { timestamp: "Sat", value: 132 },
+    { timestamp: "Sun", value: 125 }
+  ],
+  monthlyGlucoseReadings: [
+    { timestamp: "Week 1", value: 120 },
+    { timestamp: "Week 2", value: 125 },
+    { timestamp: "Week 3", value: 118 },
+    { timestamp: "Week 4", value: 122 }
   ],
   medications: [
     {

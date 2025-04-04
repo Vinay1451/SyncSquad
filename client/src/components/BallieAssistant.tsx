@@ -107,8 +107,20 @@ export default function BallieAssistant() {
     "How can I manage high blood sugar?",
     "What foods should I eat to maintain stable glucose?",
     "How does exercise affect my blood sugar?",
+    "What are normal blood sugar ranges for diabetics?",
+    "What are the symptoms of hypoglycemia?",
+    "What medications are effective for type 2 diabetes?",
+    "What are the risk factors for developing diabetes?",
+    "How can I prevent long-term complications?",
     "What should I do if my glucose is too low?",
-    "Tips for taking medications consistently"
+    "Tips for taking medications consistently",
+    "What is the recommended exercise for diabetics?",
+    "How do stress and sleep affect my glucose levels?",
+    "What do my weekly glucose trends indicate?",
+    "How do my monthly glucose patterns look?",
+    "Why does my blood sugar spike on Wednesdays?",
+    "What explains the high glucose reading in Week 3?",
+    "How can I stabilize my weekly glucose patterns?"
   ];
 
   // Function to use a suggestion
@@ -220,7 +232,7 @@ export default function BallieAssistant() {
                 <div className="mb-5">
                   <div className="text-sm text-muted-foreground mb-2">Try asking:</div>
                   <div className="flex flex-wrap gap-2">
-                    {suggestions.slice(0, 3).map((suggestion, index) => (
+                    {suggestions.slice(0, isExpanded ? 6 : 3).map((suggestion, index) => (
                       <Button
                         key={index}
                         variant="outline"
@@ -336,14 +348,29 @@ export default function BallieAssistant() {
             {/* Quick action buttons - only in expanded mode */}
             {isExpanded && (
               <div className="p-2 border-t border-border bg-card/60 backdrop-blur-sm flex justify-center space-x-2">
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <Heart className="h-3 w-3 mr-1 text-red-500" /> Blood Sugar
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 text-xs"
+                  onClick={() => useSuggestion("What are normal blood sugar ranges for diabetics?")}
+                >
+                  <Heart className="h-3 w-3 mr-1 text-red-500" /> Normal Ranges
                 </Button>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <Activity className="h-3 w-3 mr-1 text-blue-500" /> Activity
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 text-xs"
+                  onClick={() => useSuggestion("What is the recommended exercise for diabetics?")}
+                >
+                  <Activity className="h-3 w-3 mr-1 text-blue-500" /> Exercise
                 </Button>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <Brain className="h-3 w-3 mr-1 text-purple-500" /> Insights
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 text-xs"
+                  onClick={() => useSuggestion("What medications are effective for type 2 diabetes?")}
+                >
+                  <Brain className="h-3 w-3 mr-1 text-purple-500" /> Medications
                 </Button>
               </div>
             )}

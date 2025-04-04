@@ -23,12 +23,19 @@ export default function BloodSugarMonitor() {
       const path = svgRef.current.querySelector('.glucose-line');
       const area = svgRef.current.querySelector('.glucose-area');
       
+      // Get the current dataset based on selected range
+      const currentData = selectedRange === "day" 
+        ? healthData.glucoseReadings 
+        : selectedRange === "week" 
+          ? healthData.weeklyGlucoseReadings 
+          : healthData.monthlyGlucoseReadings;
+          
       // Base positions from the chart
-      const basePositions = healthData.glucoseReadings.map((reading, index) => {
+      const basePositions = currentData.map((reading, index) => {
         // Map the glucose value to a y position (higher glucose = lower y value)
         // Map to a range between 200 (very low) and 30 (very high)
         const normalizedY = 200 - ((reading.value - 40) * 140) / 360;
-        const x = (index * 500) / (healthData.glucoseReadings.length - 1);
+        const x = (index * 500) / (currentData.length - 1);
         return { cx: x, cy: normalizedY };
       });
       
@@ -67,7 +74,7 @@ export default function BloodSugarMonitor() {
     }, 3000);
     
     return () => clearInterval(intervalId);
-  }, [animateChart, healthData.glucoseReadings]);
+  }, [animateChart, healthData.glucoseReadings, healthData.weeklyGlucoseReadings, healthData.monthlyGlucoseReadings, selectedRange]);
 
   const renderTimeSelector = (range: TimeRange, label: string) => (
     <Button
@@ -98,6 +105,93 @@ export default function BloodSugarMonitor() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Trend Analysis Section */}
+          <div className="bg-muted/30 p-3 rounded-lg mb-4 border border-border/30">
+            <div className="text-sm font-medium mb-2">Trend Analysis - {selectedRange === "day" ? "Today" : selectedRange === "week" ? "This Week" : "This Month"}</div>
+            
+            {(() => {
+              // Get current dataset based on selected range
+              const currentData = selectedRange === "day" 
+                ? healthData.glucoseReadings 
+                : selectedRange === "week" 
+                  ? healthData.weeklyGlucoseReadings 
+                  : healthData.monthlyGlucoseReadings;
+              
+              // Calculate average
+              const average = currentData.reduce((sum, reading) => sum + reading.value, 0) / currentData.length;
+              
+              // Determine if trending up, down, or stable
+              const firstHalf = currentData.slice(0, Math.floor(currentData.length / 2));
+              const secondHalf = currentData.slice(Math.floor(currentData.length / 2));
+              
+              const firstHalfAvg = firstHalf.reduce((sum, reading) => sum + reading.value, 0) / firstHalf.length;
+              const secondHalfAvg = secondHalf.reduce((sum, reading) => sum + reading.value, 0) / secondHalf.length;
+              
+              const diff = secondHalfAvg - firstHalfAvg;
+              const trendDirection = diff > 5 ? "up" : diff < -5 ? "down" : "stable";
+              
+              // Determine status based on average
+              let status = "normal";
+              let statusText = "Normal Range";
+              let statusColor = "bg-green-500";
+              
+              if (average > 200) {
+                status = "high";
+                statusText = "High Risk";
+                statusColor = "bg-red-500";
+              } else if (average > 140) {
+                status = "warning";
+                statusText = "Warning";
+                statusColor = "bg-yellow-500";
+              } else if (average < 70) {
+                status = "low";
+                statusText = "Low";
+                statusColor = "bg-red-500";
+              }
+              
+              return (
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className={`w-3 h-3 rounded-full ${statusColor} mr-2`}></div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{statusText}</span>
+                      <span className="text-xs text-muted-foreground">Avg: {Math.round(average)} mg/dL</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    {trendDirection === "up" && (
+                      <div className="flex items-center text-red-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        <span className="text-sm ml-1">Trending Up</span>
+                      </div>
+                    )}
+                    
+                    {trendDirection === "down" && (
+                      <div className="flex items-center text-green-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
+                        </svg>
+                        <span className="text-sm ml-1">Trending Down</span>
+                      </div>
+                    )}
+                    
+                    {trendDirection === "stable" && (
+                      <div className="flex items-center text-blue-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+                        </svg>
+                        <span className="text-sm ml-1">Stable</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        
           <div className="h-[200px] relative">
             <svg ref={svgRef} className="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
               <defs>
@@ -117,8 +211,10 @@ export default function BloodSugarMonitor() {
               {/* Data lines */}
               <path 
                 className="glucose-line fill-none stroke-primary stroke-2" 
-                d={`M${healthData.glucoseReadings.map((reading, index) => {
-                  const x = (index * 500) / (healthData.glucoseReadings.length - 1);
+                d={`M${(selectedRange === "day" ? healthData.glucoseReadings : 
+                      selectedRange === "week" ? healthData.weeklyGlucoseReadings : 
+                      healthData.monthlyGlucoseReadings).map((reading, index, arr) => {
+                  const x = (index * 500) / (arr.length - 1);
                   const y = 200 - ((reading.value - 40) * 140) / 360;
                   return `${index === 0 ? '' : 'L'}${x},${y}`;
                 }).join(' ')}`}
@@ -126,16 +222,20 @@ export default function BloodSugarMonitor() {
               
               <path 
                 className="glucose-area fill-[url(#glucose-gradient)]" 
-                d={`M${healthData.glucoseReadings.map((reading, index) => {
-                  const x = (index * 500) / (healthData.glucoseReadings.length - 1);
+                d={`M${(selectedRange === "day" ? healthData.glucoseReadings : 
+                      selectedRange === "week" ? healthData.weeklyGlucoseReadings : 
+                      healthData.monthlyGlucoseReadings).map((reading, index, arr) => {
+                  const x = (index * 500) / (arr.length - 1);
                   const y = 200 - ((reading.value - 40) * 140) / 360;
                   return `${index === 0 ? '' : 'L'}${x},${y}`;
                 }).join(' ')} L500,200 L0,200 Z`}
               />
               
               {/* Data points */}
-              {healthData.glucoseReadings.map((reading, index) => {
-                const x = (index * 500) / (healthData.glucoseReadings.length - 1);
+              {(selectedRange === "day" ? healthData.glucoseReadings : 
+                selectedRange === "week" ? healthData.weeklyGlucoseReadings : 
+                healthData.monthlyGlucoseReadings).map((reading, index, arr) => {
+                const x = (index * 500) / (arr.length - 1);
                 const y = 200 - ((reading.value - 40) * 140) / 360;
                 return (
                   <circle 
@@ -151,7 +251,11 @@ export default function BloodSugarMonitor() {
           </div>
           
           <div className="grid grid-cols-5 text-xs mt-2 text-muted-foreground">
-            {["6 AM", "9 AM", "12 PM", "3 PM", "6 PM"].map((time, i) => (
+            {(selectedRange === "day" ? 
+              ["6 AM", "9 AM", "12 PM", "3 PM", "6 PM"] : 
+              selectedRange === "week" ? 
+              ["Mon", "Tue", "Wed", "Thu", "Fri-Sun"] :
+              ["Week 1", "Week 2", "Week 3", "Week 4", ""]).map((time, i) => (
               <div key={i} className={i === 4 ? "text-right" : ""}>{time}</div>
             ))}
           </div>
