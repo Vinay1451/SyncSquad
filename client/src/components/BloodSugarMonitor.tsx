@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useHealthData } from "../context/HealthDataContext";
+import { useSafeHealthData } from "@/hooks/use-safe-context";
 import { motion } from "framer-motion";
 
 type TimeRange = "day" | "week" | "month";
 
 export default function BloodSugarMonitor() {
-  const { healthData } = useHealthData();
+  const { healthData } = useSafeHealthData();
   const [selectedRange, setSelectedRange] = useState<TimeRange>("day");
   const [animateChart, setAnimateChart] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);

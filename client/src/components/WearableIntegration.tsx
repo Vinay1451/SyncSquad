@@ -1,15 +1,78 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { WatchIcon, FolderSync, Settings, Circle, Battery, Smartphone, CheckCircle } from "lucide-react";
+import { 
+  WatchIcon, FolderSync, Settings, Circle, Battery, 
+  Smartphone, CheckCircle, Droplets, Heart, 
+  Activity, ArrowLeft, ArrowRight, Gauge
+} from "lucide-react";
 import { useHealthData } from "../context/HealthDataContext";
+import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function WearableIntegration() {
   const { healthData } = useHealthData();
+  const { theme } = useTheme();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [setupStep, setSetupStep] = useState(0);
+  const [activeScreen, setActiveScreen] = useState(0);
+  
+  // Define the watch screens (equivalent to watch faces/apps)
+  const watchScreens = [
+    { 
+      name: "Blood Sugar", 
+      color: "blue", 
+      icon: <Droplets className="h-6 w-6 mb-1" />,
+      value: healthData.currentGlucose,
+      unit: "mg/dL",
+      trend: "stable",
+      details: "Last meal: 2h ago"
+    },
+    { 
+      name: "Heart Rate", 
+      color: "red", 
+      icon: <Heart className="h-6 w-6 mb-1" />,
+      value: healthData.heartRate,
+      unit: "BPM",
+      trend: "normal",
+      details: "Resting: 68 BPM"
+    },
+    { 
+      name: "Oxygen", 
+      color: "green", 
+      icon: <Gauge className="h-6 w-6 mb-1" />,
+      value: healthData.spO2,
+      unit: "%",
+      trend: "good",
+      details: "Normal range"
+    },
+    { 
+      name: "Activity", 
+      color: "orange", 
+      icon: <Activity className="h-6 w-6 mb-1" />,
+      value: healthData.steps,
+      unit: "steps",
+      trend: "active",
+      details: `${healthData.activityMinutes} active min`
+    }
+  ];
+  
+  // Update time every second
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  
+  // Swipe functionality
+  const handleNextScreen = () => {
+    setActiveScreen((prev) => (prev === watchScreens.length - 1 ? 0 : prev + 1));
+  };
+  
+  const handlePrevScreen = () => {
+    setActiveScreen((prev) => (prev === 0 ? watchScreens.length - 1 : prev - 1));
+  };
 
   const handleConnectWatch = () => {
     setIsConnecting(true);
@@ -171,49 +234,87 @@ export default function WearableIntegration() {
             renderConnectionSteps()
           ) : (
             <>
-              <div className="flex items-center justify-center mb-6">
-                <div className="relative aspect-[1/1.2] max-w-[180px] w-full">
+              <div className="flex flex-col items-center justify-center mb-6">
+                {/* Samsung Watch UI */}
+                <div className="relative aspect-[1/1.2] max-w-[180px] w-full mb-3">
                   <div className="absolute inset-0 rounded-[30px] overflow-hidden border-4 border-gray-800 bg-black shadow-lg">
                     <div className="absolute -inset-[5px] bg-gray-800 rounded-[35px] -z-10"></div>
+                    
+                    {/* Watch Content */}
                     <div className="h-full flex flex-col justify-between p-3 text-white">
-                      {/* Watch time */}
-                      <div className="text-center">
+                      {/* Watch time always visible at top */}
+                      <div className="text-center mb-2">
                         <div className="text-xl font-bold">
-                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                         <div className="text-xs opacity-70">
-                          {new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          {currentTime.toLocaleDateString([], { month: 'short', day: 'numeric' })}
                         </div>
                       </div>
                       
-                      {/* Health metrics */}
-                      <div className="grid grid-cols-2 gap-2 my-2">
-                        <div className="bg-blue-900 bg-opacity-30 rounded-lg p-2 text-center">
-                          <div className="text-xs opacity-70">Glucose</div>
-                          <div className="text-lg font-bold">{healthData.currentGlucose}</div>
-                          <div className="text-[10px] opacity-70">mg/dL</div>
-                        </div>
-                        <div className="bg-red-900 bg-opacity-30 rounded-lg p-2 text-center">
-                          <div className="text-xs opacity-70">Heart</div>
-                          <div className="text-lg font-bold">{healthData.heartRate}</div>
-                          <div className="text-[10px] opacity-70">BPM</div>
-                        </div>
+                      {/* Watch app screens with swipe animation */}
+                      <div className="flex-1 relative overflow-hidden">
+                        <AnimatePresence initial={false} mode="popLayout">
+                          <motion.div
+                            key={activeScreen}
+                            initial={{ opacity: 0, x: 100 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -100 }}
+                            transition={{ duration: 0.3 }}
+                            className="absolute inset-0 flex flex-col items-center justify-center"
+                          >
+                            {/* Color class with explicit mapping */}
+                            <div 
+                              className={
+                                watchScreens[activeScreen].color === "blue" ? "text-blue-500 mb-1" : 
+                                watchScreens[activeScreen].color === "red" ? "text-red-500 mb-1" :
+                                watchScreens[activeScreen].color === "green" ? "text-green-500 mb-1" :
+                                "text-orange-500 mb-1"
+                              }
+                            >
+                              {watchScreens[activeScreen].icon}
+                            </div>
+                            <div className="text-sm mb-1">{watchScreens[activeScreen].name}</div>
+                            <div className="text-2xl font-bold mb-1">
+                              {watchScreens[activeScreen].value}
+                              <span className="text-xs font-normal ml-1">{watchScreens[activeScreen].unit}</span>
+                            </div>
+                            <div className="text-xs opacity-70">{watchScreens[activeScreen].details}</div>
+                          </motion.div>
+                        </AnimatePresence>
                       </div>
                       
-                      {/* Activity rings */}
-                      <div className="mt-2">
-                        <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden">
+                      {/* Dots indicator */}
+                      <div className="flex justify-center space-x-1 mt-2 mb-1">
+                        {watchScreens.map((_, index) => (
                           <div 
-                            className="h-full bg-green-500 rounded-full" 
-                            style={{width: `${healthData.activityProgress}%`}}
-                          ></div>
-                        </div>
-                        <div className="text-center text-xs mt-1">
-                          <span className="opacity-70">Steps: {healthData.steps.toLocaleString()}</span>
-                        </div>
+                            key={index} 
+                            className={`w-1.5 h-1.5 rounded-full ${index === activeScreen ? 'bg-white' : 'bg-gray-600'}`}
+                          />
+                        ))}
                       </div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Navigation buttons */}
+                <div className="flex items-center space-x-4 text-muted-foreground text-sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handlePrevScreen}
+                    className="p-1 h-auto flex items-center hover:text-primary"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" /> Swipe Left
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleNextScreen}
+                    className="p-1 h-auto flex items-center hover:text-primary"
+                  >
+                    Swipe Right <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
                 </div>
               </div>
               

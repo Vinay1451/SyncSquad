@@ -8,18 +8,26 @@ import WearableIntegration from "../components/WearableIntegration";
 import ActivityTracker from "../components/ActivityTracker";
 import AlertsSection from "../components/AlertsSection";
 import BallieAssistant from "../components/BallieAssistant";
-import { useHealthData } from "../context/HealthDataContext";
+import { useSafeHealthData } from "@/hooks/use-safe-context";
 
 export default function Dashboard() {
-  const { refreshData } = useHealthData();
+  const { refreshData } = useSafeHealthData();
 
   useEffect(() => {
     // Initial data fetch
-    refreshData();
+    try {
+      refreshData();
+    } catch (e) {
+      console.warn('Could not refresh health data');
+    }
     
     // Set up interval for periodic updates
     const intervalId = setInterval(() => {
-      refreshData();
+      try {
+        refreshData();
+      } catch (e) {
+        console.warn('Could not refresh health data');
+      }
     }, 60000); // Refresh every minute
     
     return () => clearInterval(intervalId);

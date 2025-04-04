@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
+import { useSafeTheme } from "@/hooks/use-safe-context";
 import { motion } from "framer-motion";
-// Temporary placeholder for logos until we have actual images
-const kalasalingamLogo = "https://via.placeholder.com/150x60?text=Kalasalingam";
-const eleviumLogo = "https://via.placeholder.com/150x60?text=Elevium";
+// Using online image URLs for logos
+const kalasalingamLogo = "https://www.kalasalingam.ac.in/wp-content/uploads/2023/09/kalasalingam_logo.png";
+const eleviumLogo = "https://img.freepik.com/premium-vector/abstract-modern-medical-health-care-logo-design_139869-775.jpg";
 
 export default function Header() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useSafeTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
   
   // Update the clock every second

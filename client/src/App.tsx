@@ -14,8 +14,8 @@ import BallieAssistant from "./components/BallieAssistant";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={SignIn} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/auth" component={SignIn} />
+      <Route path="/" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

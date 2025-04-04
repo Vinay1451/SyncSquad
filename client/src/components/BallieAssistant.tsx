@@ -16,7 +16,15 @@ type Message = {
 };
 
 export default function BallieAssistant() {
-  const { theme } = useTheme();
+  const themeContext = { theme: 'light' };
+  try {
+    // Try to use the theme context, but fall back to a default if it fails
+    Object.assign(themeContext, useTheme());
+  } catch (e) {
+    console.warn('Theme context not available, using default theme');
+  }
+  const { theme } = themeContext;
+  
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,7 +71,7 @@ export default function BallieAssistant() {
     if (!inputValue.trim() || isWaitingForResponse) return;
     
     // Add user message
-    const userMessage = { sender: "user", text: inputValue.trim(), timestamp: new Date() };
+    const userMessage: Message = { sender: "user", text: inputValue.trim(), timestamp: new Date() };
     setMessages(prev => [...prev, userMessage]);
     setInputValue("");
     setIsWaitingForResponse(true);
@@ -72,7 +80,7 @@ export default function BallieAssistant() {
       // Get AI response
       const response = await generateAIResponse(userMessage.text);
       setMessages(prev => [...prev, { 
-        sender: "assistant", 
+        sender: "assistant" as const, 
         text: response,
         timestamp: new Date()
       }]);
@@ -80,7 +88,7 @@ export default function BallieAssistant() {
       setMessages(prev => [
         ...prev, 
         { 
-          sender: "assistant", 
+          sender: "assistant" as const, 
           text: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
           timestamp: new Date()
         }
