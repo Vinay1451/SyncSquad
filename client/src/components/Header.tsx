@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 // Using PNG image URLs for logos
 const kalasalingamLogo = "https://sis.kalasalingam.ac.in/images/kare_logo.png";
 const eleviumLogo =
-  "https://res.cloudinary.com/dtz0urit6/image/upload/f_jpg,q_auto/cloudinary-tools-uploads/sjakldjtgvzacg3wfqzi.jpg";
+  "https://res.cloudinary.com/dtz0urit6/image/upload/f_png,q_auto/cloudinary-tools-uploads/vsis9kjt4jbn4h5buhdh.png";
 
 export default function Header() {
   const { theme, toggleTheme } = useSafeTheme();
