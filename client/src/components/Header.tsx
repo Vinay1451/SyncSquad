@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useSafeTheme } from "@/hooks/use-safe-context";
 import { motion } from "framer-motion";
-// Using online image URLs for logos
-const kalasalingamLogo = "https://www.kalasalingam.ac.in/wp-content/uploads/2023/09/kalasalingam_logo.png";
-const eleviumLogo = "https://img.freepik.com/premium-vector/abstract-modern-medical-health-care-logo-design_139869-775.jpg";
+// Using PNG image URLs for logos
+const kalasalingamLogo = "https://png.pngtree.com/png-clipart/20230113/ourmid/pngtree-university-logo-png-image_6560763.png";
+const eleviumLogo = "https://png.pngtree.com/png-clipart/20230430/original/pngtree-health-care-doctor-logo-template-vector-png-image_9124783.png";
 
 export default function Header() {
   const { theme, toggleTheme } = useSafeTheme();
