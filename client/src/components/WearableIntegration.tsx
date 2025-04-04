@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { 
   WatchIcon, FolderSync, Settings, Circle, Battery, 
   Smartphone, CheckCircle, Droplets, Heart, 
-  Activity, ArrowLeft, ArrowRight, Gauge
+  Activity, ArrowLeft, ArrowRight, Gauge,
+  Play, Pause
 } from "lucide-react";
 import { useHealthData } from "../context/HealthDataContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -65,6 +66,23 @@ export default function WearableIntegration() {
     return () => clearInterval(timer);
   }, []);
   
+  // Auto-swipe functionality
+  const [isAutoSwipe, setIsAutoSwipe] = useState(false);
+  
+  useEffect(() => {
+    let autoSwipeTimer: NodeJS.Timeout | null = null;
+    
+    if (isConnected && isAutoSwipe) {
+      autoSwipeTimer = setInterval(() => {
+        handleNextScreen();
+      }, 3000); // Change screen every 3 seconds
+    }
+    
+    return () => {
+      if (autoSwipeTimer) clearInterval(autoSwipeTimer);
+    };
+  }, [isConnected, isAutoSwipe, activeScreen]);
+  
   // Swipe functionality
   const handleNextScreen = () => {
     setActiveScreen((prev) => (prev === watchScreens.length - 1 ? 0 : prev + 1));
@@ -72,6 +90,10 @@ export default function WearableIntegration() {
   
   const handlePrevScreen = () => {
     setActiveScreen((prev) => (prev === 0 ? watchScreens.length - 1 : prev - 1));
+  };
+  
+  const toggleAutoSwipe = () => {
+    setIsAutoSwipe(prev => !prev);
   };
 
   const handleConnectWatch = () => {
@@ -336,6 +358,18 @@ export default function WearableIntegration() {
               </div>
               
               <div className="mt-4 text-center">
+                <Button 
+                  variant={isAutoSwipe ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full mr-2"
+                  onClick={toggleAutoSwipe}
+                >
+                  {isAutoSwipe ? (
+                    <><Pause className="h-3 w-3 mr-1" /> Stop Auto</> 
+                  ) : (
+                    <><Play className="h-3 w-3 mr-1" /> Auto Swipe</>
+                  )}
+                </Button>
                 <Button variant="outline" size="sm" className="rounded-full mr-2">
                   <FolderSync className="h-3 w-3 mr-1" /> Sync Now
                 </Button>
