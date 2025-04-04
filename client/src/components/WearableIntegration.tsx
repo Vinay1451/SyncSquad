@@ -2,18 +2,17 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  WatchIcon, FolderSync, Settings, Circle, Battery, 
+  Watch as WatchIcon, FolderSync, Settings, Circle, Battery, 
   Smartphone, CheckCircle, Droplets, Heart, 
   Activity, ArrowLeft, ArrowRight, Gauge,
   Play, Pause
 } from "lucide-react";
-import { useHealthData } from "../context/HealthDataContext";
-import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSafeHealthData, useSafeTheme } from "@/hooks/use-safe-context";
 
 export default function WearableIntegration() {
-  const { healthData } = useHealthData();
-  const { theme } = useTheme();
+  const { healthData } = useSafeHealthData();
+  const { theme } = useSafeTheme();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [setupStep, setSetupStep] = useState(0);

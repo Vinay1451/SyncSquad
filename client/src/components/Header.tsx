@@ -34,17 +34,17 @@ export default function Header() {
     <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Left side - Kalasalingam Academy logo */}
+          {/* Left side - Kalasalingam Academy text and logo */}
           <div className="flex items-center space-x-3">
+            <div className="block">
+              <h3 className="text-sm font-medium leading-tight">Kalasalingam Academy</h3>
+              <p className="text-xs text-muted-foreground">Of Research And Education</p>
+            </div>
             <img 
               src={kalasalingamLogo} 
               alt="Kalasalingam Academy Logo" 
               className="h-12 w-auto"
             />
-            <div className="hidden md:block">
-              <h3 className="text-sm font-medium leading-tight">Kalasalingam Academy</h3>
-              <p className="text-xs text-muted-foreground">Of Research And Education</p>
-            </div>
           </div>
           
           {/* Center - Project title and animated clock */}
@@ -76,15 +76,15 @@ export default function Header() {
           
           {/* Right side - Elevium logo and theme toggle */}
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex flex-col items-end">
-              <h3 className="text-sm font-medium">Elevium</h3>
-              <p className="text-xs text-muted-foreground">Healthcare Innovation</p>
-            </div>
             <img 
               src={eleviumLogo} 
               alt="Elevium Logo" 
               className="h-12 w-auto"
             />
+            <div className="hidden md:flex flex-col items-start">
+              <h3 className="text-sm font-medium">Elevium</h3>
+              <p className="text-xs text-muted-foreground">Healthcare Innovation</p>
+            </div>
             <Button 
               variant="ghost" 
               size="icon" 
