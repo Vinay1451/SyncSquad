@@ -419,7 +419,7 @@ export default function WearableIntegration() {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <WatchIcon className={`h-5 w-5 mr-2 ${theme === 'light' ? 'text-primary' : 'text-primary/80'}`} />
-              <CardTitle className={theme === 'light' ? 'text-slate-800' : ''}>Wearable Device</CardTitle>
+              <CardTitle className={theme === 'light' ? 'text-slate-800' : ''}>Wearable Watch</CardTitle>
             </div>
             <div className={`text-sm flex items-center font-medium ${
               isConnected 

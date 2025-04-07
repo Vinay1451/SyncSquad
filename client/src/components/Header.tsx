@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 // Using PNG image URLs for logos
 const kalasalingamLogo = "https://sis.kalasalingam.ac.in/images/kare_logo.png";
 const eleviumLogo =
-  "https://res.cloudinary.com/dtz0urit6/image/upload/f_png,q_auto/cloudinary-tools-uploads/vsis9kjt4jbn4h5buhdh.png";
+  "https://d3j0t7vrtr92dk.cloudfront.net/elab/1731303245_1.png";
 
 export default function Header() {
   const { theme, toggleTheme } = useSafeTheme();
@@ -59,7 +59,7 @@ export default function Header() {
           {/* Center - Project title and animated clock */}
           <div className="flex flex-col items-center">
             <h1 className="text-2xl font-bold text-center">
-              AI-Powered Blood Sugar Monitoring System
+              AI-Powered Blood Glucose Monitoring System
             </h1>
             <div className="flex flex-col sm:flex-row items-center text-sm text-muted-foreground mt-1">
               <motion.div

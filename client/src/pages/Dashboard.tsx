@@ -96,7 +96,7 @@ export default function Dashboard() {
         refreshData();
         setLastRefresh(new Date());
       } catch (e) {
-        console.warn('Could not refresh health data');
+        console.warn('Could not refresh health data please connect with internet or wifi to fetch');
       }
     }, 15000); // Refresh every 15 seconds
     
